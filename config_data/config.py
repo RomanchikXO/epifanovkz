@@ -8,6 +8,8 @@ else:
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-DEFAULT_COMMANDS = (
-    ("start", "Запустить бота")
-    )
+DEFAULT_COMMANDS = [
+    ("/start", "Начать работу с ботом"),
+    ("/help", "Получить справку"),
+    # Добавьте другие команды, если нужно
+]
