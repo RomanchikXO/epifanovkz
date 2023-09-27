@@ -1,7 +1,7 @@
-from loader import bot
-import handlers  # noqa
-from telebot.custom_filters import StateFilter
+from epifanov_clinic.loader import bot
+import epifanov_clinic.handlers  # noqa
 from utils.set_bot_commands import set_default_commands
+from telebot.custom_filters import StateFilter
 # from database.DataBase import Person
 
 
