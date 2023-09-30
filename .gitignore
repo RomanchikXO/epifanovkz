@@ -11,8 +11,6 @@ venv.bak/
 /config_data/
 /config_data/__init__.py
 /config_data/config.py
-/database/
-/database/__init__.py
 /handlers/
 /handlers/default_handlers/
 /handlers/default_handlers/__init__.py
@@ -36,3 +34,5 @@ venv.bak/
 /__init__.py
 /loader.py
 /main.py
+
+epifanovDB
