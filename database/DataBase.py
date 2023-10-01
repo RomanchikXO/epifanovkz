@@ -32,6 +32,7 @@ class Tasks(BaseModel):
     task = CharField()
     date = IntegerField()
     status = BooleanField(default=None)
+    comment_if_done = CharField()
 
 
 def create_tables():
