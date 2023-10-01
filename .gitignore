@@ -34,6 +34,8 @@ venv.bak/
 /__init__.py
 /loader.py
 /main.py
+
+
 .idea/
 __pycache__/
 database/__pycache__/
