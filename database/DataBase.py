@@ -30,9 +30,10 @@ class Tasks(BaseModel):
     """
     name_patient = CharField()
     task = CharField()
-    date = IntegerField()
-    status = BooleanField(default=None)
-    comment_if_done = CharField()
+    date = CharField()
+    status = BooleanField(default=None, null=True)
+    comment_if_done = CharField(default=None, null=True)
+
 
 
 def create_tables():
