@@ -7,3 +7,7 @@ class UserInfoState(StatesGroup):
     viewing_information = State()
 
     change_date = State()
+    change_pat_name = State()
+    change_task = State()
+    changing_settings = State()
+    amendment = State()

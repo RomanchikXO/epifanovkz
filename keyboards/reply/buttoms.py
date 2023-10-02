@@ -42,7 +42,7 @@ def create_keyboard_mas():
     return keyboard
 
 
-def add_task():
+def select_an_action():
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     button1 = types.KeyboardButton("Добавить")
