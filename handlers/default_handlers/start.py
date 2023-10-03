@@ -1,4 +1,5 @@
 from telebot.types import Message
+from .funcs_for_data.funcs import *
 from loader import bot
 
 from keyboards.reply.buttoms import *
@@ -9,8 +10,6 @@ from states.person_info import UserInfoState
 from database.DataBase import User, Tasks
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 import datetime
-
-
 
 
 @bot.message_handler(state="*", commands=["start"])
@@ -48,65 +47,60 @@ def handle_button_click(message):
                      func=lambda message: message.text in ["Анара", "Кристина", "Денис", "Мария", "Жулдыз", "Роман",
                                                            "Луиза"])
 def handle_button_click(message):
-
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        existing_person: object = User.get_or_none(name=message.text, telegram_id=data['tele_id'], profession=data['profession'])
-        if existing_person is None:
+        existing_people = User.select().where(User.telegram_id == data['tele_id']).execute()
+
+        if not existing_people:
             User.create(name=message.text, telegram_id=data['tele_id'], profession=data['profession'])
+        existing_people = User.select().where(User.telegram_id == data['tele_id']).execute()
 
-    queryset = User.select().where(User.profession == data['profession'])
-    name = None
-    tg_id = None
-    for person in queryset:
-        name = person.name
-        tg_id = person.telegram_id
+        name = None
+        tg_id = None
+        for person in existing_people:
+            name = person.name
+            tg_id = person.telegram_id
 
-    if message.text == "Анара":
-        if message.from_user.id == tg_id:
-            bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-        else:
-            bot.send_message(message.from_user.id, f'Вы {name}')
+        if message.text == "Анара":
+            if message.text == name:
+                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
+            else:
+                bot.send_message(message.from_user.id, f'Вы {name}')
 
+        elif message.text == "Кристина":
+            if message.text == name:
+                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
+            else:
+                bot.send_message(message.from_user.id, f'Вы {name}')
 
-    elif message.text == "Анара":
-        if message.from_user.id == tg_id:
-            bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-        else:
-            bot.send_message(message.from_user.id, f'Вы {name}')
-    elif message.text == "Кристина":
-        if message.from_user.id == tg_id:
-            bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-        else:
-            bot.send_message(message.from_user.id, f'Вы {name}')
-    elif message.text == "Денис":
-        if message.from_user.id == tg_id:
-            bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-        else:
-            bot.send_message(message.from_user.id, f'Вы {name}')
-    elif message.text == "Мария":
-        if message.from_user.id == tg_id:
-            bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-        else:
-            bot.send_message(message.from_user.id, f'Вы {name}')
-    elif message.text == "Жулдыз":
-        if message.from_user.id == tg_id:
-            bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-        else:
-            bot.send_message(message.from_user.id, f'Вы {name}')
-    elif message.text == "Роман":
-        if message.from_user.id == tg_id:
-            bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
+        elif message.text == "Денис":
+            if message.text == name:
+                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
+            else:
+                bot.send_message(message.from_user.id, f'Вы {name}')
+        elif message.text == "Мария":
+            if message.text == name:
+                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
+            else:
+                bot.send_message(message.from_user.id, f'Вы {name}')
+        elif message.text == "Жулдыз":
+            if message.text == name:
+                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
+            else:
+                bot.send_message(message.from_user.id, f'Вы {name}')
+        elif message.text == "Роман":
+            if message.text == name:
+                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
 
-            bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
-            change_keyboard = select_an_action()
-            bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
-        else:
-            bot.send_message(message.from_user.id, f'Вы {name}')
-    elif message.text == "Луиза":
-        if message.from_user.id == tg_id:
-            bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-        else:
-            bot.send_message(message.from_user.id, f'Вы {name}')
+                bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
+                change_keyboard = select_an_action()
+                bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
+            else:
+                bot.send_message(message.from_user.id, f'Вы {name}')
+        elif message.text == "Луиза":
+            if message.text == name:
+                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
+            else:
+                bot.send_message(message.from_user.id, f'Вы {name}')
 
 
 @bot.message_handler(state=UserInfoState.add_info,
@@ -118,9 +112,13 @@ def add_and_view(message):
         # Tasks.create(name=message.text, telegram_id=data['tele_id'], profession=data['profession'])
     elif message.text == "Прочитать":
         print('Сейчас будем читать задачи')
-        tasks_today = Tasks.select().where(Tasks.date == datetime.date.today())
-        for i_task in tasks_today:
-            bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}')
+        tasks_today = Tasks.select().where(Tasks.date == datetime.date.today()).execute()
+        if tasks_today:
+            for i_task in tasks_today:
+                bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}')
+                print(f"{i_task.status} {type(i_task.status)}")
+        else:
+            bot.send_message(message.from_user.id, 'Задач на сегодня нет, можно чилить ^^)')
 
 
 @bot.message_handler(state=UserInfoState.change_date)
@@ -147,20 +145,27 @@ def cal(call):
 
 
 @bot.message_handler(state=UserInfoState.change_pat_name)
-def pat_name(message):
+def pat_name(message, flag=True):
+    add_name_path(message)
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data['name_pat'] = message.text.title()
-    bot.set_state(message.from_user.id, UserInfoState.change_task, message.chat.id)
-    bot.send_message(message.from_user.id, 'Напишите задачу:')
+        print(data['name_pat'])
+    if flag:
+        bot.set_state(message.from_user.id, UserInfoState.change_task, message.chat.id)
+        bot.send_message(message.from_user.id, 'Напишите задачу:')
+    if not flag:
+        print('excellent')
+        add_task(message, flag=False)
 
 
 @bot.message_handler(state=UserInfoState.change_task)
-def add_task(message):
+def add_task(message, flag=True):
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data['task'] = message.text.capitalize()
+        if flag:
+            data['task'] = message.text.capitalize()
         info_message, confirmation_keyboard = create_confirmation_keyboard(data)
     bot.set_state(message.from_user.id, UserInfoState.amendment)
     bot.send_message(message.from_user.id, info_message, reply_markup=confirmation_keyboard)
+
 
 @bot.callback_query_handler(state=UserInfoState.amendment, func=lambda call: call.data == "change_info")
 def confirm_data(call):
@@ -172,17 +177,23 @@ def confirm_data(call):
 @bot.message_handler(state=UserInfoState.changing_settings,
                      func=lambda message: message.text in ["Имя пациента", "Дата выполнения задачи", "Задача"])
 def handle_button_click(message):
-
     if message.text == "Имя пациента":
-        pass
+        def get_name(message):
+            pat_name(message, flag=False)
+        bot.send_message(message.chat.id, "Введите ваше имя и фамилию:")
+        bot.register_next_step_handler(message, get_name)
+
+
     elif message.text == "Дата выполнения задачи":
-        pass
+        bot.send_message(message.from_user.id, 'Введите дату выполнения задачи:')
     elif message.text == "Задача":
-        pass
+        bot.send_message(message.from_user.id, 'Введите новую задачу:')
+
 
 @bot.callback_query_handler(state=UserInfoState.amendment, func=lambda call: call.data == "confirm")
 def confirm_data(call):
     print('Идет запись данных в бд')
     with bot.retrieve_data(call.from_user.id) as data:
-        Tasks.create(name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None, comment_if_done=None)
+        Tasks.create(name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None,
+                     comment_if_done=None)
     bot.send_message(call.from_user.id, "Ваши данные записаны")
