@@ -1,6 +1,7 @@
 # Environments
 myenv/
 .venv
+.env
 */.env
 env/
 venv/
@@ -11,11 +12,6 @@ venv.bak/
 /config_data/
 /config_data/__init__.py
 /config_data/config.py
-/handlers/
-/handlers/default_handlers/
-/handlers/default_handlers/__init__.py
-/handlers/default_handlers/start.py
-/handlers/__init__.py
 /keyboards/
 /keyboards/inline/
 /keyboards/reply/
