@@ -6,6 +6,7 @@ from loader import bot
 from keyboards.reply.buttoms import *
 from keyboards.inline.done_or_change import *
 from keyboards.inline.change_settings import *
+from keyboards.inline.completed_or_not import *
 
 from states.person_info import UserInfoState
 from database.DataBase import User, Tasks
@@ -100,23 +101,44 @@ def add_and_view(message):
         tasks_today = Tasks.select().where(Tasks.date == datetime.date.today()).execute()
         if tasks_today:
             for i_task in tasks_today:
-                bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}')
-                print(f"{i_task.status} {type(i_task.status)}")
+                button = done_for_task()
+                bot.set_state(message.from_user.id, UserInfoState.add_comment)
+                with bot.retrieve_data(message.from_user.id) as data:
+                    params = User.select().where(User.telegram_id == message.from_user.id).execute()
+                    for param in params:
+                        prof = param.profession
+                        name = param.name
+                if prof == "Администратор" or name == "Роман":
+                    bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
+                                     reply_markup=button)
+                    print(f"{i_task.status} {type(i_task.status)}")
+                else:
+                    bot.send_message(message.from_user.id, "Добавление комментариев доступно только для администраторов")
+
         else:
             bot.send_message(message.from_user.id, 'Задач на сегодня нет, можно чилить ^^)')
+
+
+@bot.callback_query_handler(state=UserInfoState.add_comment, func=lambda call: True)
+def handle_callback(callback_query):
+    bot.set_state(callback_query.message.from_user.id, UserInfoState.add_comment_2)
+    bot.send_message(callback_query.message.from_user.id, "Задача будет выполнена после добавления комментария. "
+                                                          "\nНапишите комментарий")
+
+# @bot.callback_query_handler(state=UserInfoState.add_comment_2)
+# def handle_callback(message):
+#     Tasks.update(comment_if_done=message).where(Tasks.name == 16, Tasks.date == datetime.date.today()).execute()
 
 
 @bot.message_handler(state=UserInfoState.change_date)
 @bot.callback_query_handler(func=DetailedTelegramCalendar.func())
 def handle_calendar_input(message_or_call):
     if isinstance(message_or_call, telebot.types.Message):
-        # Обработка текстовых сообщений
         calendar, step = DetailedTelegramCalendar(locale='ru', min_date=datetime.date.today()).build()
         bot.send_message(message_or_call.chat.id,
                          f"Select {LSTEP[step]}",
                          reply_markup=calendar)
     elif isinstance(message_or_call, telebot.types.CallbackQuery):
-        # Обработка callback-запросов
         call = message_or_call
         result, key, step = DetailedTelegramCalendar().process(call.data)
         if not result and key:
@@ -197,5 +219,5 @@ def confirm_data(call):
                      comment_if_done=None)
     bot.send_message(call.from_user.id, "Ваши данные записаны")
     bot.set_state(call.from_user.id, UserInfoState.add_info)
-    change_keyboard = select_an_action()
+    change_keyboard = select_an_action("docs")
     bot.send_message(call.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
