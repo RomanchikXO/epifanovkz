@@ -42,11 +42,14 @@ def create_keyboard_mas():
     return keyboard
 
 
-def select_an_action():
+def select_an_action(type_person):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     button1 = types.KeyboardButton("Добавить")
     button2 = types.KeyboardButton("Прочитать")
 
-    keyboard.add(button1, button2)
+    if type_person == "adm":
+        keyboard.add(button2)
+    else:
+        keyboard.add(button1, button2)
     return keyboard
