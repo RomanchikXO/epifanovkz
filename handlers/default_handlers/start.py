@@ -1,3 +1,4 @@
+import telebot
 from telebot.types import Message
 from .funcs_for_data.funcs import *
 from loader import bot
@@ -60,47 +61,32 @@ def handle_button_click(message):
             name = person.name
             tg_id = person.telegram_id
 
-        if message.text == "Анара":
+        if message.text in ["Анара", "Кристина"]:
             if message.text == name:
                 bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
+                bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
+                change_keyboard = select_an_action("adm")
+                bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
             else:
                 bot.send_message(message.from_user.id, f'Вы {name}')
+                bot_start(message)
 
-        elif message.text == "Кристина":
-            if message.text == name:
-                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-            else:
-                bot.send_message(message.from_user.id, f'Вы {name}')
-
-        elif message.text == "Денис":
-            if message.text == name:
-                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-            else:
-                bot.send_message(message.from_user.id, f'Вы {name}')
-        elif message.text == "Мария":
-            if message.text == name:
-                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-            else:
-                bot.send_message(message.from_user.id, f'Вы {name}')
-        elif message.text == "Жулдыз":
-            if message.text == name:
-                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-            else:
-                bot.send_message(message.from_user.id, f'Вы {name}')
-        elif message.text == "Роман":
+        elif message.text in ["Роман", "Жулдыз", "Мария", "Денис", "Луиза"]:
             if message.text == name:
                 bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
 
                 bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
-                change_keyboard = select_an_action()
+                change_keyboard = select_an_action("docs")
                 bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
             else:
                 bot.send_message(message.from_user.id, f'Вы {name}')
+                bot_start(message)
         elif message.text == "Луиза":
             if message.text == name:
                 bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
             else:
                 bot.send_message(message.from_user.id, f'Вы {name}')
+                bot_start(message)
 
 
 @bot.message_handler(state=UserInfoState.add_info,
@@ -108,8 +94,7 @@ def handle_button_click(message):
 def add_and_view(message):
     if message.text == "Добавить":
         bot.set_state(message.from_user.id, UserInfoState.change_date, message.chat.id)
-
-        # Tasks.create(name=message.text, telegram_id=data['tele_id'], profession=data['profession'])
+        handle_calendar_input(message)
     elif message.text == "Прочитать":
         print('Сейчас будем читать задачи')
         tasks_today = Tasks.select().where(Tasks.date == datetime.date.today()).execute()
@@ -122,44 +107,49 @@ def add_and_view(message):
 
 
 @bot.message_handler(state=UserInfoState.change_date)
-def butt_calendar(message):
-    calendar, step = DetailedTelegramCalendar(locale='ru', min_date=datetime.date.today()).build()
-    bot.send_message(message.chat.id,
-                     f"Select {LSTEP[step]}",
-                     reply_markup=calendar)
-
-
 @bot.callback_query_handler(func=DetailedTelegramCalendar.func())
-def cal(call):
-    result, key, step = DetailedTelegramCalendar().process(call.data)
-    if not result and key:
-        bot.edit_message_text(f"Select {LSTEP[step]}",
-                              call.message.chat.id,
-                              call.message.message_id,
-                              reply_markup=key)
-    elif result:
-        with bot.retrieve_data(call.from_user.id) as data:
-            data['date_task'] = result
-        bot.set_state(call.from_user.id, UserInfoState.change_pat_name)
-        bot.send_message(call.from_user.id, 'Введите ФАМИЛИЮ и ИМЯ пацента:')
+def handle_calendar_input(message_or_call):
+    if isinstance(message_or_call, telebot.types.Message):
+        # Обработка текстовых сообщений
+        calendar, step = DetailedTelegramCalendar(locale='ru', min_date=datetime.date.today()).build()
+        bot.send_message(message_or_call.chat.id,
+                         f"Select {LSTEP[step]}",
+                         reply_markup=calendar)
+    elif isinstance(message_or_call, telebot.types.CallbackQuery):
+        # Обработка callback-запросов
+        call = message_or_call
+        result, key, step = DetailedTelegramCalendar().process(call.data)
+        if not result and key:
+            bot.edit_message_text(f"Select {LSTEP[step]}",
+                                  call.message.chat.id,
+                                  call.message.message_id,
+                                  reply_markup=key)
+        elif result:
+            with bot.retrieve_data(call.from_user.id) as data:
+                if data.get('date_task', None) is None:
+                    data['date_task'] = result
+                    bot.set_state(call.from_user.id, UserInfoState.change_pat_name)
+                    bot.send_message(call.from_user.id, 'Введите ФАМИЛИЮ и ИМЯ пациента:')
+                else:
+                    print('Дату поменяли')
+                    data['date_task'] = result
+                    add_task(call, flag=False)
 
 
 @bot.message_handler(state=UserInfoState.change_pat_name)
 def pat_name(message, flag=True):
     add_name_path(message)
-    with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        print(data['name_pat'])
     if flag:
         bot.set_state(message.from_user.id, UserInfoState.change_task, message.chat.id)
         bot.send_message(message.from_user.id, 'Напишите задачу:')
     if not flag:
-        print('excellent')
+        print('Имя пациента поменяли')
         add_task(message, flag=False)
 
 
 @bot.message_handler(state=UserInfoState.change_task)
 def add_task(message, flag=True):
-    with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+    with bot.retrieve_data(message.from_user.id) as data:
         if flag:
             data['task'] = message.text.capitalize()
         info_message, confirmation_keyboard = create_confirmation_keyboard(data)
@@ -180,14 +170,23 @@ def handle_button_click(message):
     if message.text == "Имя пациента":
         def get_name(message):
             pat_name(message, flag=False)
-        bot.send_message(message.chat.id, "Введите ваше имя и фамилию:")
+
+        bot.send_message(message.chat.id, "Введите ФАМИЛИЮ и ИМЯ пацента:")
         bot.register_next_step_handler(message, get_name)
 
 
     elif message.text == "Дата выполнения задачи":
+        def get_date_task(message):
+            handle_calendar_input(message, flag=False)
+
         bot.send_message(message.from_user.id, 'Введите дату выполнения задачи:')
+        handle_calendar_input(message)
     elif message.text == "Задача":
+        def get_task(message):
+            add_task(message, flag=True)
+
         bot.send_message(message.from_user.id, 'Введите новую задачу:')
+        bot.register_next_step_handler(message, get_task)
 
 
 @bot.callback_query_handler(state=UserInfoState.amendment, func=lambda call: call.data == "confirm")
@@ -197,3 +196,6 @@ def confirm_data(call):
         Tasks.create(name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None,
                      comment_if_done=None)
     bot.send_message(call.from_user.id, "Ваши данные записаны")
+    bot.set_state(call.from_user.id, UserInfoState.add_info)
+    change_keyboard = select_an_action()
+    bot.send_message(call.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
