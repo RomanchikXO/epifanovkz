@@ -14,6 +14,12 @@ from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 import datetime
 
 
+# with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+#    data['profession'] = message.text
+#    data['tele_id'] = message.from_user.id
+#    data['date_task'] = result
+#    data['task'] = message.text.capitalize()
+
 @bot.message_handler(state="*", commands=["start"])
 def bot_start(message: Message) -> None:
     print('Декоратор @bot.message_handler(commands=["start"]) сработал')
@@ -108,10 +114,13 @@ def add_and_view(message):
                     for param in params:
                         prof = param.profession
                         name = param.name
-                if prof == "Администратор" or name == "Роман":
-                    bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
-                                     reply_markup=button)
-                    print(f"{i_task.status} {type(i_task.status)}")
+                if prof == "Администратор" or name in ["Роман", "Анара", "Кристина"]:
+                    if not i_task.status:
+                        bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
+                                         reply_markup=button)
+                    else:
+                        bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
+                                                                f'Комментарий: {i_task.comment_if_done}')
                 else:
                     bot.send_message(message.from_user.id, "Добавление комментариев доступно только для администраторов")
 
@@ -119,15 +128,18 @@ def add_and_view(message):
             bot.send_message(message.from_user.id, 'Задач на сегодня нет, можно чилить ^^)')
 
 
-@bot.callback_query_handler(state=UserInfoState.add_comment, func=lambda call: True)
-def handle_callback(callback_query):
-    bot.set_state(callback_query.message.from_user.id, UserInfoState.add_comment_2)
-    bot.send_message(callback_query.message.from_user.id, "Задача будет выполнена после добавления комментария. "
-                                                          "\nНапишите комментарий")
+@bot.callback_query_handler(state=UserInfoState.add_comment, func=lambda call: call.data == "confirm")
+def handle_callback(call, name):
+    bot.set_state(call.from_user.id, UserInfoState.add_comment_2)
+    bot.send_message(call.from_user.id, "Задача будет выполнена после добавления комментария. "
+                                        "\nНапишите комментарий", name=name)
 
-# @bot.callback_query_handler(state=UserInfoState.add_comment_2)
-# def handle_callback(message):
-#     Tasks.update(comment_if_done=message).where(Tasks.name == 16, Tasks.date == datetime.date.today()).execute()
+
+@bot.message_handler(state=UserInfoState.add_comment_2)
+def handle_callback(message, name):
+    Tasks.update(comment_if_done=message).where(Tasks.name_patient == name, Tasks.date == datetime.date.today()).execute()
+    bot.send_message(message.from_user.id, "Комментарий успешно добавлен")
+    bot.register_next_step_handler(message, add_and_view)
 
 
 @bot.message_handler(state=UserInfoState.change_date)
