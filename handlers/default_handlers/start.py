@@ -19,6 +19,7 @@ import datetime
 #    data['tele_id'] = message.from_user.id
 #    data['date_task'] = result
 #    data['task'] = message.text.capitalize()
+#    data["name_patient"] = call.data
 
 @bot.message_handler(state="*", commands=["start"])
 def bot_start(message: Message) -> None:
@@ -105,39 +106,48 @@ def add_and_view(message):
     elif message.text == "Прочитать":
         print('Сейчас будем читать задачи')
         tasks_today = Tasks.select().where(Tasks.date == datetime.date.today()).execute()
+
         if tasks_today:
-            for i_task in tasks_today:
-                button = done_for_task()
-                bot.set_state(message.from_user.id, UserInfoState.add_comment)
-                with bot.retrieve_data(message.from_user.id) as data:
+            with bot.retrieve_data(message.from_user.id) as data:
+                for i_task in tasks_today:
+                    button = done_for_task(i_task.name_patient)
+
+                    bot.set_state(message.from_user.id, UserInfoState.add_comment)
+
                     params = User.select().where(User.telegram_id == message.from_user.id).execute()
                     for param in params:
                         prof = param.profession
                         name = param.name
-                if prof == "Администратор" or name in ["Роман", "Анара", "Кристина"]:
-                    if not i_task.status:
-                        bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
-                                         reply_markup=button)
+
+                    if prof == "Администратор" or name in ["Роман", "Анара", "Кристина"]:
+                        if i_task.status is None:
+                            bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
+                                             reply_markup=button)
+                        else:
+                            bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
+                                                                    f'Комментарий: {i_task.comment_if_done}')
                     else:
-                        bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
-                                                                f'Комментарий: {i_task.comment_if_done}')
-                else:
-                    bot.send_message(message.from_user.id, "Добавление комментариев доступно только для администраторов")
+                        bot.send_message(message.from_user.id, "Добавление комментариев доступно только для администраторов")
 
         else:
             bot.send_message(message.from_user.id, 'Задач на сегодня нет, можно чилить ^^)')
 
 
-@bot.callback_query_handler(state=UserInfoState.add_comment, func=lambda call: call.data == "confirm")
-def handle_callback(call, name):
+@bot.callback_query_handler(state=UserInfoState.add_comment, func=lambda call: True)
+def handle_callback(call):
+    with bot.retrieve_data(call.from_user.id) as data:
+        data["name_patient"] = call.data
     bot.set_state(call.from_user.id, UserInfoState.add_comment_2)
     bot.send_message(call.from_user.id, "Задача будет выполнена после добавления комментария. "
-                                        "\nНапишите комментарий", name=name)
+                                        "\nНапишите комментарий")
 
 
 @bot.message_handler(state=UserInfoState.add_comment_2)
-def handle_callback(message, name):
-    Tasks.update(comment_if_done=message).where(Tasks.name_patient == name, Tasks.date == datetime.date.today()).execute()
+def handle_callback(message):
+    print('сейчас добавится коммент')
+    with bot.retrieve_data(message.from_user.id) as data:
+        print(f'для {data["name_patient"]}')
+        Tasks.update(comment_if_done=message.text, status=True).where(Tasks.name_patient == data["name_patient"], Tasks.date == datetime.date.today()).execute()
     bot.send_message(message.from_user.id, "Комментарий успешно добавлен")
     bot.register_next_step_handler(message, add_and_view)
 
