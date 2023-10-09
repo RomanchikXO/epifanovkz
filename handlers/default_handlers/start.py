@@ -119,16 +119,12 @@ def add_and_view(message):
                         prof = param.profession
                         name = param.name
 
-                    if prof == "Администратор" or name in ["Роман", "Анара", "Кристина"]:
-                        if i_task.status is None:
-                            bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
-                                             reply_markup=button)
-                        else:
-                            bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
-                                                                    f'Комментарий: {i_task.comment_if_done}')
+                    if i_task.status is None:
+                        bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
+                                         reply_markup=button)
                     else:
-                        bot.send_message(message.from_user.id, "Добавление комментариев доступно только для администраторов")
-
+                        bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
+                                                                f'Комментарий: {i_task.comment_if_done}')
         else:
             bot.send_message(message.from_user.id, 'Задач на сегодня нет, можно чилить ^^)')
 
