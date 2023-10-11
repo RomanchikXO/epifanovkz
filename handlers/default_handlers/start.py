@@ -249,6 +249,7 @@ def confirm_data(call):
     with bot.retrieve_data(call.from_user.id) as data:
         Tasks.create(name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None,
                      comment_if_done=None)
+        data['date_task'] = None
     bot.send_message(call.from_user.id, "Ваши данные записаны")
     bot.set_state(call.from_user.id, UserInfoState.add_info)
     change_keyboard = select_an_action("docs")
