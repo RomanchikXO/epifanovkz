@@ -118,7 +118,7 @@ def add_and_view(message):
                     for param in params:
                         prof = param.profession
                         name = param.name
-                    if data['profession'] == "Администратор":
+                    if data['profession'] in ["Администратор", "Массажист"]:
                         if i_task.status is None:
                             bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
                                              reply_markup=button)
@@ -132,11 +132,9 @@ def add_and_view(message):
                             bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
                                                                     f'Комментарий: {i_task.comment_if_done}')
                 if data['profession'] == "Администратор":
-                    bot.set_state(message.from_user.id, UserInfoState.add_info)
                     change_keyboard = select_an_action("nodocs")
                     bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
                 else:
-                    bot.set_state(message.from_user.id, UserInfoState.add_info)
                     change_keyboard = select_an_action("docs")
                     bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
         else:
