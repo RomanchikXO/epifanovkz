@@ -1,3 +1,4 @@
+import peewee
 import telebot
 from telebot.types import Message
 from .funcs_for_data.funcs import *
@@ -26,7 +27,7 @@ def bot_start(message: Message) -> None:
     print('Декоратор @bot.message_handler(commands=["start"]) сработал')
     change_keyboard = create_keyboard_person()
     bot.set_state(message.from_user.id, UserInfoState.change_staff, message.chat.id)
-    bot.send_message(message.from_user.id, "Выберите, профессию:", reply_markup=change_keyboard)
+    bot.send_message(message.from_user.id, "Выберите свою профессию:", reply_markup=change_keyboard)
 
 
 @bot.message_handler(state=UserInfoState.change_staff,
@@ -36,20 +37,16 @@ def handle_button_click(message):
         data.clear()
         data['profession'] = message.text
         data['tele_id'] = message.from_user.id
+
+        bot.set_state(message.from_user.id, UserInfoState.change_name, message.chat.id)
         if message.text == "Администратор":
-            bot.set_state(message.from_user.id, UserInfoState.change_name, message.chat.id)
-            change_keyboard = create_keyboard_adm()
-            bot.send_message(message.from_user.id, "Выбери специалиста", reply_markup=change_keyboard)
+            change_keyboard = name_staff("adm")
         elif message.text == "Врач":
-            bot.set_state(message.from_user.id, UserInfoState.change_name, message.chat.id)
-            change_keyboard = create_keyboard_doc()
-            bot.send_message(message.from_user.id, "Выбери специалиста", reply_markup=change_keyboard)
+            change_keyboard = name_staff("doc")
         elif message.text == "Массажист":
-            bot.set_state(message.from_user.id, UserInfoState.change_name, message.chat.id)
-            change_keyboard = create_keyboard_mas()
-            bot.send_message(message.from_user.id, "Выбери специалиста", reply_markup=change_keyboard)
-        else:
-            bot.send_message(message.from_user.id, "Ошибка ввода, повторите попытку")
+            change_keyboard = name_staff("mas")
+
+        bot.send_message(message.from_user.id, "Выбери специалиста", reply_markup=change_keyboard)
 
 
 @bot.message_handler(state=UserInfoState.change_name,
@@ -57,41 +54,27 @@ def handle_button_click(message):
                                                            "Луиза"])
 def handle_button_click(message):
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        existing_people = User.select().where(User.telegram_id == data['tele_id']).execute()
-
-        if not existing_people:
+        try:
+            existing_people = User.get(User.telegram_id == data['tele_id'])
+        except peewee.DoesNotExist:
+            # Создаем нового пользователя, если запись не существует
             User.create(name=message.text, telegram_id=data['tele_id'], profession=data['profession'])
-        existing_people = User.select().where(User.telegram_id == data['tele_id']).execute()
+        finally:
+            # Снова получаем существующих пользователей (или только что созданного)
+            existing_people = User.select().where(User.telegram_id == data['tele_id']).execute()
 
-        name = None
-        tg_id = None
-        for person in existing_people:
-            name = person.name
-            tg_id = person.telegram_id
+            name = None
+            for person in existing_people:
+                name = person.name
 
-        if message.text in ["Анара", "Кристина"]:
             if message.text == name:
                 bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
                 bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
-                change_keyboard = select_an_action("adm")
+                if message.text in ["Анара", "Кристина"]:
+                    change_keyboard = select_an_action("adm")
+                else:
+                    change_keyboard = select_an_action("docs")
                 bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
-            else:
-                bot.send_message(message.from_user.id, f'Вы {name}')
-                bot_start(message)
-
-        elif message.text in ["Роман", "Жулдыз", "Мария", "Денис", "Луиза"]:
-            if message.text == name:
-                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-
-                bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
-                change_keyboard = select_an_action("docs")
-                bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
-            else:
-                bot.send_message(message.from_user.id, f'Вы {name}')
-                bot_start(message)
-        elif message.text == "Луиза":
-            if message.text == name:
-                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
             else:
                 bot.send_message(message.from_user.id, f'Вы {name}')
                 bot_start(message)
@@ -118,25 +101,13 @@ def add_and_view(message):
                     for param in params:
                         prof = param.profession
                         name = param.name
-                    if data['profession'] in ["Администратор", "Массажист"]:
-                        if i_task.status is None:
-                            bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
-                                             reply_markup=button)
-                        else:
-                            bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
-                                                                    f'Комментарий: {i_task.comment_if_done}')
+
+                    if i_task.status is None:
+                        bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}',
+                                         reply_markup=button)
                     else:
-                        if i_task.status is None:
-                            bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} - {i_task.task}')
-                        else:
-                            bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
-                                                                    f'Комментарий: {i_task.comment_if_done}')
-                if data['profession'] == "Администратор":
-                    change_keyboard = select_an_action("nodocs")
-                    bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
-                else:
-                    change_keyboard = select_an_action("docs")
-                    bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
+                        bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
+                                                                f'Комментарий: {i_task.comment_if_done}')
         else:
             bot.send_message(message.from_user.id, 'Задач на сегодня нет, можно чилить ^^)')
 
@@ -226,7 +197,6 @@ def handle_button_click(message):
         bot.send_message(message.chat.id, "Введите ФАМИЛИЮ и ИМЯ пацента:")
         bot.register_next_step_handler(message, get_name)
 
-
     elif message.text == "Дата выполнения задачи":
         def get_date_task(message):
             handle_calendar_input(message, flag=False)
@@ -247,7 +217,6 @@ def confirm_data(call):
     with bot.retrieve_data(call.from_user.id) as data:
         Tasks.create(name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None,
                      comment_if_done=None)
-        data['date_task'] = None
     bot.send_message(call.from_user.id, "Ваши данные записаны")
     bot.set_state(call.from_user.id, UserInfoState.add_info)
     change_keyboard = select_an_action("docs")
