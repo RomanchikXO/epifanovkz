@@ -9,6 +9,10 @@ from states.person_info import UserInfoState
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 import datetime
 
+from keyboards.reply.buttoms import select_an_action
+
+from database.DataBase import Tasks
+
 
 @bot.message_handler(state=UserInfoState.change_date)
 @bot.callback_query_handler(func=DetailedTelegramCalendar.func())
@@ -96,6 +100,7 @@ def confirm_data(call):
     with bot.retrieve_data(call.from_user.id) as data:
         Tasks.create(name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None,
                      comment_if_done=None)
+        del data["name_pat"], data['task'], data['date_task']
     bot.send_message(call.from_user.id, "Ваши данные записаны")
     bot.set_state(call.from_user.id, UserInfoState.add_info)
     change_keyboard = select_an_action("docs")
