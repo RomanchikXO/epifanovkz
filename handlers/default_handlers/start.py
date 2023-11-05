@@ -1,16 +1,14 @@
 from handlers.default_handlers.adder_task import *
+from handlers.default_handlers.reader_task import read_task_func
 
 import peewee
 from telebot.types import Message
 from loader import bot
 
 from keyboards.reply.buttoms import *
-from keyboards.inline.completed_or_not import *
 
 from states.person_info import UserInfoState
-from database.DataBase import User, Tasks
-import datetime
-
+from database.DataBase import User
 
 
 # with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
@@ -78,13 +76,19 @@ def handle_button_click(message):
                 bot_start(message)
 
 
-@bot.message_handler(state=UserInfoState.add_info,
+@bot.message_handler(state=[UserInfoState.add_info, UserInfoState.add_comment],
                      func=lambda message: message.text in ["Добавить", "Прочитать"])
 def add_and_view(message):
-    if message.text == "Добавить":
-        bot.set_state(message.from_user.id, UserInfoState.change_date, message.chat.id)
-        handle_calendar_input(message)
 
+    if message.text == "Добавить":
+        existing_people = User.select().where(User.profession in ["Врач", "Массажист"])
+        some_list = [person.telegram_id for person in existing_people]
+        if message.from_user.id in some_list:
+            bot.set_state(message.from_user.id, UserInfoState.change_date, message.chat.id)
+            handle_calendar_input(message)
+        else:
+            bot.send_message(message.from_user.id, "Добавление задач для вас не доступно")
     elif message.text == "Прочитать":
         print('Сейчас будем читать задачи')
         bot.set_state(message.from_user.id, UserInfoState.read_task, message.chat.id)
+        read_task_func(message)
