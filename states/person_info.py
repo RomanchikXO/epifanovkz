@@ -12,5 +12,6 @@ class UserInfoState(StatesGroup):
     changing_settings = State()
     amendment = State()
 
+    read_task = State()
     add_comment = State()
     add_comment_2 = State()
