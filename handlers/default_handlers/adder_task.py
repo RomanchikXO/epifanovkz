@@ -96,7 +96,7 @@ def handle_button_click(message):
 
 @bot.callback_query_handler(state=UserInfoState.amendment, func=lambda call: call.data == "confirm")
 def confirm_data(call):
-    print('Идет запись данных в бд')
+    print(f'Идет запись данных в бд {datetime.datetime.now()}')
     with bot.retrieve_data(call.from_user.id) as data:
         Tasks.create(name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None,
                      comment_if_done=None)
