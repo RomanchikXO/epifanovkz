@@ -2,6 +2,7 @@ from handlers.default_handlers.adder_task import *
 from handlers.default_handlers.reader_task import read_task_func
 
 import peewee
+
 from telebot.types import Message
 from loader import bot
 
@@ -28,7 +29,7 @@ def bot_start(message: Message) -> None:
 
 @bot.message_handler(state=UserInfoState.change_staff,
                      func=lambda message: message.text in ["Администратор", "Врач", "Массажист"])
-def handle_button_click(message):
+def handle_button_click(message: Message) -> None:
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data.clear()
         data['profession'] = message.text
@@ -48,7 +49,7 @@ def handle_button_click(message):
 @bot.message_handler(state=UserInfoState.change_name,
                      func=lambda message: message.text in ["Анара", "Кристина", "Денис", "Мария", "Жулдыз", "Роман",
                                                            "Луиза"])
-def handle_button_click(message):
+def handle_button_click(message: Message) -> None:
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         try:
             existing_people = User.get(User.telegram_id == data['tele_id'])
@@ -59,7 +60,6 @@ def handle_button_click(message):
             # Снова получаем существующих пользователей (или только что созданного)
             existing_people = User.select().where(User.telegram_id == data['tele_id'])
 
-            name = None
             for person in existing_people:
                 name = person.name
 
@@ -78,7 +78,7 @@ def handle_button_click(message):
 
 @bot.message_handler(state=[UserInfoState.add_info, UserInfoState.add_comment],
                      func=lambda message: message.text in ["Добавить", "Прочитать"])
-def add_and_view(message):
+def add_and_view(message: Message) -> None:
 
     if message.text == "Добавить":
         existing_people = User.select().where(User.profession in ["Врач", "Массажист"])
