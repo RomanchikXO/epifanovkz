@@ -57,7 +57,7 @@ def pat_name(message: Message, flag: bool = True) -> None:
 
 
 @bot.message_handler(state=UserInfoState.change_task)
-def add_task(message: Message, flag: bool = True) -> None:
+def add_task(message: Union[Message, CallbackQuery], flag: bool = True) -> None:
     with bot.retrieve_data(message.from_user.id) as data:
         if flag:
             data['task'] = message.text.capitalize()
@@ -99,7 +99,7 @@ def handle_button_click(message: Message) -> None:
 
 @bot.callback_query_handler(state=UserInfoState.amendment, func=lambda call: call.data == "confirm")
 def confirm_data(call: CallbackQuery) -> None:
-    print('Идет запись данных в бд')
+    print(f'Идет запись данных в бд {datetime.datetime.now()}')
     with bot.retrieve_data(call.from_user.id) as data:
         Tasks.create(name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None,
                      comment_if_done=None)
