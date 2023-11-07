@@ -89,6 +89,6 @@ def add_and_view(message: Message) -> None:
         else:
             bot.send_message(message.from_user.id, "Добавление задач для вас не доступно")
     elif message.text == "Прочитать":
-        print('Сейчас будем читать задачи')
+        print(f'Сейчас будем читать задачи {datetime.datetime.now()}')
         bot.set_state(message.from_user.id, UserInfoState.read_task, message.chat.id)
         read_task_func(message)
