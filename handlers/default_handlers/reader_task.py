@@ -12,6 +12,13 @@ from keyboards.reply.buttoms import select_an_action
 @bot.message_handler(state=[UserInfoState.read_task, UserInfoState.add_comment],
                      func=lambda message: message.text == "Прочитать")
 def read_task_func(message: Message) -> None:
+    """
+    Обработчик для вывода задач на сегодня.
+
+    :param message: Объект сообщения от пользователя.
+    :return: Ничего не возвращает.
+    """
+    # Получение задач на сегодня
     tasks_today = Tasks.select().where(Tasks.date == datetime.date.today()).execute()
 
     if tasks_today:
