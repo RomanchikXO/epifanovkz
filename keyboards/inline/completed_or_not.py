@@ -1,5 +1,4 @@
 from telebot import types
-from typing import Tuple
 
 
 def done_for_task(name: str) -> types.InlineKeyboardMarkup:

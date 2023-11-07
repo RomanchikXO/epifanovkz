@@ -4,7 +4,7 @@ from loader import bot
 
 # Эхо хендлер, куда летят текстовые сообщения без указанного состояния
 @bot.message_handler(state=None)
-def bot_echo(message: Message):
+def bot_echo(message: Message) -> None:
     bot.reply_to(
         message, "Нажми сюда -> /start"
     )

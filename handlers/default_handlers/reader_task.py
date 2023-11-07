@@ -1,5 +1,6 @@
 from loader import bot
 from keyboards.inline.completed_or_not import *
+from telebot.types import Message, CallbackQuery
 
 from states.person_info import UserInfoState
 from database.DataBase import User, Tasks
@@ -10,7 +11,7 @@ from keyboards.reply.buttoms import select_an_action
 
 @bot.message_handler(state=[UserInfoState.read_task, UserInfoState.add_comment],
                      func=lambda message: message.text == "Прочитать")
-def read_task_func(message):
+def read_task_func(message: Message) -> None:
     tasks_today = Tasks.select().where(Tasks.date == datetime.date.today()).execute()
 
     if tasks_today:
@@ -31,7 +32,7 @@ def read_task_func(message):
 
 
 @bot.callback_query_handler(state=[UserInfoState.add_comment, UserInfoState.add_info], func=lambda call: True)
-def handle_callback(call):
+def handle_callback(call: CallbackQuery) -> None:
     with bot.retrieve_data(call.from_user.id) as data:
         data["name_patient"] = call.data
     bot.set_state(call.from_user.id, UserInfoState.add_comment_2)
@@ -40,7 +41,7 @@ def handle_callback(call):
 
 
 @bot.message_handler(state=UserInfoState.add_comment_2)
-def handle_callback(message):
+def handle_callback(message: Message) -> None:
     with bot.retrieve_data(message.from_user.id) as data:
         Tasks.update(comment_if_done=message.text, status=True).where(Tasks.name_patient == data["name_patient"], Tasks.date == datetime.date.today()).execute()
 
