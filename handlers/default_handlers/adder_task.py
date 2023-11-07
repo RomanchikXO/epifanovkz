@@ -1,4 +1,3 @@
-import telebot
 from .funcs_for_data.funcs import *
 from loader import bot
 
@@ -20,7 +19,14 @@ from database.DataBase import Tasks
 @bot.message_handler(state=UserInfoState.change_date)
 @bot.callback_query_handler(func=DetailedTelegramCalendar.func())
 def handle_calendar_input(message_or_call: Union[Message, CallbackQuery]) -> None:
+    """
+    Обработчик для ввода даты через календарь.
+
+    :param message_or_call: Объект сообщения или callback-запроса.
+    :return: Ничего не возвращает.
+    """
     if isinstance(message_or_call, Message):
+        # Отображение календаря
         calendar, step = DetailedTelegramCalendar(locale='ru', min_date=datetime.date.today()).build()
         bot.send_message(message_or_call.chat.id,
                          f"Select {LSTEP[step]}",
@@ -29,6 +35,7 @@ def handle_calendar_input(message_or_call: Union[Message, CallbackQuery]) -> Non
         call = message_or_call
         result, key, step = DetailedTelegramCalendar().process(call.data)
         if not result and key:
+            # Обновление сообщения с календарем
             bot.edit_message_text(f"Select {LSTEP[step]}",
                                   call.message.chat.id,
                                   call.message.message_id,

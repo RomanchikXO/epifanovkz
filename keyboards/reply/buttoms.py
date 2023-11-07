@@ -1,44 +1,45 @@
-from telebot import types
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 
 
-def create_keyboard_person():
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+def create_keyboard_person() -> ReplyKeyboardMarkup:
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 
-    button1 = types.KeyboardButton("Администратор")
-    button2 = types.KeyboardButton("Врач")
-    button3 = types.KeyboardButton("Массажист")
+    button1 = KeyboardButton("Администратор")
+    button2 = KeyboardButton("Врач")
+    button3 = KeyboardButton("Массажист")
 
     keyboard.add(button1, button2, button3)
     return keyboard
 
 
-def name_staff(job):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+def name_staff(job: str) -> ReplyKeyboardMarkup:
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     if job == "adm":
-        button1 = types.KeyboardButton("Анара")
-        button2 = types.KeyboardButton("Кристина")
+        button1 = KeyboardButton("Анара")
+        button2 = KeyboardButton("Кристина")
         keyboard.add(button1, button2)
     elif job == "doc":
-        button1 = types.KeyboardButton("Денис")
-        button2 = types.KeyboardButton("Мария")
-        button3 = types.KeyboardButton("Жулдыз")
+        button1 = KeyboardButton("Денис")
+        button2 = KeyboardButton("Мария")
+        button3 = KeyboardButton("Жулдыз")
         keyboard.add(button1, button2, button3)
     elif job == "mas":
-        button1 = types.KeyboardButton("Роман")
-        button2 = types.KeyboardButton("Луиза")
+        button1 = KeyboardButton("Роман")
+        button2 = KeyboardButton("Луиза")
         keyboard.add(button1, button2)
 
     return keyboard
 
 
-def select_an_action(type_person):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+def select_an_action(type_person: str) -> ReplyKeyboardMarkup:
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 
-    button1 = types.KeyboardButton("Добавить")
-    button2 = types.KeyboardButton("Прочитать")
+    button1 = KeyboardButton("Добавить")
+    button2 = KeyboardButton("Прочитать")
+    button3 = KeyboardButton("Мои задачи")
 
     if type_person == "adm":
         keyboard.add(button2)
     elif type_person == "docs":
-        keyboard.add(button1, button2)
+        keyboard.add(button1, button2, button3)
     return keyboard

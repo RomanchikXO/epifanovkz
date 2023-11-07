@@ -1,5 +1,8 @@
-from handlers.default_handlers.adder_task import *
+from handlers.default_handlers.adder_task import handle_calendar_input
 from handlers.default_handlers.reader_task import read_task_func
+from handlers.default_handlers.docs_tasks import time_interval
+
+import datetime
 
 import peewee
 
@@ -77,7 +80,7 @@ def handle_button_click(message: Message) -> None:
 
 
 @bot.message_handler(state=[UserInfoState.add_info, UserInfoState.add_comment],
-                     func=lambda message: message.text in ["Добавить", "Прочитать"])
+                     func=lambda message: message.text in ["Добавить", "Прочитать", "Мои задачи"])
 def add_and_view(message: Message) -> None:
 
     if message.text == "Добавить":
@@ -89,6 +92,11 @@ def add_and_view(message: Message) -> None:
         else:
             bot.send_message(message.from_user.id, "Добавление задач для вас не доступно")
     elif message.text == "Прочитать":
-        print(f'Сейчас будем читать задачи {datetime.datetime.now()}')
+        print(f"Сейчас будем читать задачи {datetime.datetime.now()}")
         bot.set_state(message.from_user.id, UserInfoState.read_task, message.chat.id)
         read_task_func(message)
+    elif message.text == "Мои задачи":
+        bot.send_message(message.from_user.id, "Пока в разработке ...")
+        # print(f"Выведение задач {datetime.datetime.now()}")
+        # bot.set_state(message.from_user.id, UserInfoState.change_period, message.chat.id)
+        # time_interval(message)

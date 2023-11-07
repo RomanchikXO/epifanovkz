@@ -15,3 +15,6 @@ class UserInfoState(StatesGroup):
     read_task = State()
     add_comment = State()
     add_comment_2 = State()
+
+    change_period = State()
+    get_data = State()
