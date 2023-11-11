@@ -13,7 +13,7 @@ import datetime
 
 from keyboards.reply.buttoms import select_an_action
 
-from database.DataBase import Tasks
+from database.DataBase import Tasks, User
 
 
 @bot.message_handler(state=UserInfoState.change_date)
@@ -110,7 +110,13 @@ def confirm_data(call: CallbackQuery) -> None:
     with bot.retrieve_data(call.from_user.id) as data:
         Tasks.create(name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None,
                      comment_if_done=None)
+        if data['date_task'] == datetime.date.today():
+            customers = User.select().where(User.profession == "Администратор")
+            customers_id = [user.telegram_id for user in customers]
+            for id in customers_id:
+                bot.send_message(id, 'Появилась новая задача на сегодня')
         del data["name_pat"], data['task'], data['date_task']
+
     bot.send_message(call.from_user.id, "Ваши данные записаны")
     bot.set_state(call.from_user.id, UserInfoState.add_info)
     change_keyboard = select_an_action("docs")

@@ -55,8 +55,8 @@ def handle_callback(message: Message) -> None:
     bot.send_message(message.from_user.id, "Комментарий успешно добавлен")
     bot.set_state(message.from_user.id, UserInfoState.add_info)
 
-    customer_id = User.select().where(User.telegram_id == message.from_user.id)[0].profession
-    if customer_id == "Администратор":
+    customer_prof = User.select().where(User.telegram_id == message.from_user.id)[0].profession
+    if customer_prof == "Администратор":
         change_keyboard = select_an_action("adm")
     else:
         change_keyboard = select_an_action("docs")
