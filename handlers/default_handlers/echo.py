@@ -6,5 +6,6 @@ from loader import bot
 @bot.message_handler(state=None)
 def bot_echo(message: Message) -> None:
     bot.reply_to(
-        message, "Нажми сюда -> /start"
+        message, "Я вас не понимаю, давай попробуем сначала\n"
+                 "Нажми сюда -> /start"
     )
