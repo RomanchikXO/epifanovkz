@@ -32,7 +32,7 @@ def read_task_func(message: Message) -> None:
                                  reply_markup=button)
             else:
                 bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
-                                                        f'Комментарий: {i_task.comment_if_done}')
+                                                        f'Комментарий✅: {i_task.comment_if_done}')
     else:
         bot.set_state(message.from_user.id, UserInfoState.add_info)
         bot.send_message(message.from_user.id, 'Задач на сегодня нет, можно чилить ^^)')
