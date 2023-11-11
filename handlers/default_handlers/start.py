@@ -96,7 +96,6 @@ def add_and_view(message: Message) -> None:
         bot.set_state(message.from_user.id, UserInfoState.read_task, message.chat.id)
         read_task_func(message)
     elif message.text == "Мои задачи":
-        # bot.send_message(message.from_user.id, "Пока в разработке ...")
         print(f"Выведение задач {datetime.datetime.now()}")
         bot.set_state(message.from_user.id, UserInfoState.change_period, message.chat.id)
         time_interval(message)

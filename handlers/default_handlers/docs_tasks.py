@@ -3,8 +3,9 @@ from loader import bot
 from telebot.types import Message
 from states.person_info import UserInfoState
 from keyboards.reply.time_buttons import *
-from database.DataBase import User, Tasks
+from database.DataBase import Tasks
 from datetime import date, timedelta
+from keyboards.reply.buttoms import select_an_action
 
 
 def generate_tasks_report(days: int, chat_id: int, caption: str, visible_file_name: str) -> None:
@@ -28,10 +29,10 @@ def generate_tasks_report(days: int, chat_id: int, caption: str, visible_file_na
     """
     start_date = date.today() - timedelta(days=days)
     end_date = date.today()
-    tasks_last_week = Tasks.select().where((Tasks.date >= start_date) & (Tasks.date <= end_date)).execute()
+    tasks_last_week = Tasks.select().where((Tasks.date >= start_date) & (Tasks.date <= end_date)).order_by(Tasks.date.desc())
 
     file_content = '\n'.join(
-        f"{i_task.name_patient} - {i_task.task} - {i_task.date} - {i_task.comment_if_done}\n" for i_task in
+        f"Пациент:{i_task.name_patient}\nЗадача:{i_task.task}\nДата:{i_task.date}\nКомментарий:{i_task.comment_if_done}\n" for i_task in
         tasks_last_week)
 
     with io.BytesIO() as file:
@@ -49,19 +50,29 @@ def generate_tasks_report(days: int, chat_id: int, caption: str, visible_file_na
 @bot.message_handler(state=UserInfoState.change_period,
                      func=lambda message: message.text == "Мои задачи")
 def time_interval(message: Message) -> None:
+    """
+    Обработчик сообщений для изменения периода просмотра задач пользователя.
+
+    При получении сообщения "Мои задачи" устанавливает состояние пользователя в UserInfoState.get_data.
+    Затем отправляет сообщение с клавиатурой выбора периода просмотра задач или выбора даты.
+
+    :param message: Объект сообщения от пользователя.
+    :type message: Message
+    :return: None
+    """
     bot.set_state(message.from_user.id, UserInfoState.get_data)
     change_keyboard = week_month_change()
     bot.send_message(message.from_user.id, "Выбери период просмотра задач или выбери дату", reply_markup=change_keyboard)
 
 
 @bot.message_handler(state=UserInfoState.get_data,
-                     func=lambda message: message.text in ["Неделя🔽", "Месяц🔽", "Ввод даты"])
+                     func=lambda message: message.text in ["Неделя🔽", "Месяц🔽", "Ввод даты", "Назад🔙"])
 def fetch_patient_data(message: Message) -> None:
     if message.text == "Неделя🔽":
         generate_tasks_report(
             days=7,
-            chat_id = message.from_user.id,
-            caption = "Ваши задачи за последнюю неделю",
+            chat_id=message.from_user.id,
+            caption="Ваши задачи за последнюю неделю",
             visible_file_name="Задачи_неделя.txt"
         )
     elif message.text == "Месяц🔽":
@@ -73,3 +84,7 @@ def fetch_patient_data(message: Message) -> None:
         )
     elif message.text == "Ввод даты":
         bot.send_message(message.from_user.id, "Пока в разработке")
+    elif message.text == "Назад🔙":
+        bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
+        change_keyboard = select_an_action("docs")
+        bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
