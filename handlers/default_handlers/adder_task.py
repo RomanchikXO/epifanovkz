@@ -108,7 +108,7 @@ def handle_button_click(message: Message) -> None:
 def confirm_data(call: CallbackQuery) -> None:
     print(f'Идет запись данных в бд {datetime.datetime.now()}')
     with bot.retrieve_data(call.from_user.id) as data:
-        doctor = User.select().where(User.telegram_id == call.from_user.id)
+        doctor = User.get(User.telegram_id == call.from_user.id)
         Tasks.create(doc=doctor.name,name_patient=data["name_pat"], task=data['task'], date=data['date_task'], status=None,
                      comment_if_done=None)
         if data['date_task'] == datetime.date.today():

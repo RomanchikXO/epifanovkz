@@ -32,7 +32,7 @@ def generate_tasks_report(days: int, chat_id: int, caption: str, visible_file_na
     tasks_last_week = Tasks.select().where((Tasks.date >= start_date) & (Tasks.date <= end_date)).order_by(Tasks.date.desc())
 
     file_content = '\n'.join(
-        f"Пациент:{i_task.name_patient}\nЗадача:{i_task.task}\nДата:{i_task.date}\nКомментарий:{i_task.comment_if_done}\n" for i_task in
+        f"Врач:{i_task.doc}\nПациент:{i_task.name_patient}\nЗадача:{i_task.task}\nДата:{i_task.date}\nКомментарий:{i_task.comment_if_done}\n" for i_task in
         tasks_last_week)
 
     with io.BytesIO() as file:
