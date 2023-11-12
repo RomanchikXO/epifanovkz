@@ -31,21 +31,23 @@ def generate_tasks_report(days: int, chat_id: int, caption: str, visible_file_na
     end_date = date.today()
     tasks_last_week = Tasks.select().where((Tasks.date >= start_date) & (Tasks.date <= end_date)).order_by(Tasks.date.desc())
 
-    file_content = '\n'.join(
-        f"Врач:{i_task.doc}\nПациент:{i_task.name_patient}\nЗадача:{i_task.task}\nДата:{i_task.date}\nКомментарий:{i_task.comment_if_done}\n" for i_task in
-        tasks_last_week)
+    if tasks_last_week:
+        file_content = '\n'.join(
+            f"Врач:{i_task.doc}\nПациент:{i_task.name_patient}\nЗадача:{i_task.task}\nДата:{i_task.date}\nКомментарий:{i_task.comment_if_done}\n" for i_task in
+            tasks_last_week)
 
-    with io.BytesIO() as file:
-        file.write(file_content.encode())
-        file.seek(0)
+        with io.BytesIO() as file:
+            file.write(file_content.encode())
+            file.seek(0)
 
-        bot.send_document(
-            chat_id=chat_id,
-            document=file,
-            caption=caption,
-            visible_file_name=visible_file_name
-        )
-
+            bot.send_document(
+                chat_id=chat_id,
+                document=file,
+                caption=caption,
+                visible_file_name=visible_file_name
+            )
+    else:
+        bot.send_message(chat_id, f"Задачи за последние {days} отсутствуют.")
 
 @bot.message_handler(state=UserInfoState.change_period,
                      func=lambda message: message.text == "Мои задачи")
