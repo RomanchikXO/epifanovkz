@@ -35,7 +35,9 @@ venv.bak/
 .idea/
 __pycache__/
 database/__pycache__/
-
+.DS_Store
+handlers/.DS_Store
+handlers/default_handlers/.DS_Store
 
 epifanovDB
 test.py
