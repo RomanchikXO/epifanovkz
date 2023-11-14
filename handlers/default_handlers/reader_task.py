@@ -38,7 +38,7 @@ def read_task_func(message: Message) -> None:
         bot.send_message(message.from_user.id, 'Задач на сегодня нет, можно чилить ^^)')
 
 
-@bot.callback_query_handler(state=[UserInfoState.add_comment, UserInfoState.add_info], func=lambda call: True)
+@bot.callback_query_handler(state=[UserInfoState.add_comment, UserInfoState.add_info, UserInfoState.get_data], func=lambda call: True)
 def handle_callback(call: CallbackQuery) -> None:
     with bot.retrieve_data(call.from_user.id) as data:
         data["name_patient"] = call.data

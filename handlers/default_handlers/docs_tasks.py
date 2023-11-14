@@ -1,12 +1,19 @@
 import io
 from loader import bot
-from telebot.types import Message
+
 from states.person_info import UserInfoState
+
 from keyboards.reply.time_buttons import *
+from keyboards.inline.completed_or_not import *
+
 from database.DataBase import Tasks
 from datetime import date, timedelta
 from keyboards.reply.buttoms import select_an_action
 
+from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
+from telebot.types import Message
+
+import datetime
 
 def generate_tasks_report(days: int, chat_id: int, caption: str, visible_file_name: str) -> None:
     """
@@ -85,8 +92,46 @@ def fetch_patient_data(message: Message) -> None:
             visible_file_name="Задачи_месяц.txt"
         )
     elif message.text == "Ввод даты":
-        bot.send_message(message.from_user.id, "Пока в разработке")
+        bot.set_state(message.from_user.id, UserInfoState.get_date, message.chat.id)
+        date_input(message)
     elif message.text == "Назад🔙":
         bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
         change_keyboard = select_an_action("docs")
         bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
+
+
+@bot.message_handler(state=UserInfoState.get_date)
+def date_input(message: Message) -> None:
+    """
+    Обработчик для ввода даты через календарь.
+
+    :param call_or_message: Объект сообщения.
+    :return: Ничего не возвращает.
+    """
+    calendar, step = DetailedTelegramCalendar(calendar_id=1, locale='ru', min_date=datetime.date.today()).build()
+    bot.send_message(message.chat.id,
+                     f"Select {LSTEP[step]}",
+                     reply_markup=calendar)
+
+
+@bot.callback_query_handler(func=DetailedTelegramCalendar.func(calendar_id=1))
+def cal(call):
+    result, key, step = DetailedTelegramCalendar(calendar_id=1, locale='ru', min_date=datetime.date.today()).process(call.data)
+    if not result and key:
+        bot.edit_message_text(f"Select {LSTEP[step]}",
+                              call.message.chat.id,
+                              call.message.message_id,
+                              reply_markup=key)
+    elif result:
+        tasks_in_result = Tasks.select().where(Tasks.date == result).execute()
+        bot.set_state(call.from_user.id, UserInfoState.get_data)
+        if tasks_in_result:
+            for i_task in tasks_in_result:
+                button = done_for_task(i_task.name_patient)
+                bot.send_message(call.from_user.id, f'Пациент: {i_task.name_patient} \nЗадача: {i_task.task}',
+                                 reply_markup=button)
+
+            pass
+        else:
+            bot.send_message(call.from_user.id, 'Задач на эту дату нет')
+

@@ -18,3 +18,5 @@ class UserInfoState(StatesGroup):
 
     change_period = State()
     get_data = State()
+    get_date = State()
+    get_task_in_date = State()

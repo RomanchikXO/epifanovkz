@@ -3,6 +3,7 @@ from loader import bot
 
 from keyboards.inline.done_or_change import *
 from keyboards.inline.change_settings import *
+from keyboards.reply.buttoms import select_an_action
 
 from telebot.types import Message, CallbackQuery
 from typing import Union
@@ -10,8 +11,6 @@ from typing import Union
 from states.person_info import UserInfoState
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 import datetime
-
-from keyboards.reply.buttoms import select_an_action
 
 from database.DataBase import Tasks, User
 
@@ -33,7 +32,7 @@ def handle_calendar_input(message_or_call: Union[Message, CallbackQuery]) -> Non
                          reply_markup=calendar)
     elif isinstance(message_or_call, CallbackQuery):
         call = message_or_call
-        result, key, step = DetailedTelegramCalendar().process(call.data)
+        result, key, step = DetailedTelegramCalendar(locale='ru', min_date=datetime.date.today()).process(call.data)
         if not result and key:
             # Обновление сообщения с календарем
             bot.edit_message_text(f"Select {LSTEP[step]}",
