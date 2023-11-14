@@ -91,9 +91,6 @@ def handle_button_click(message: Message) -> None:
         bot.register_next_step_handler(message, get_name)
 
     elif message.text == "Дата выполнения задачи":
-        def get_date_task(message):
-            handle_calendar_input(message, flag=False)
-
         bot.send_message(message.from_user.id, 'Введите дату выполнения задачи:')
         handle_calendar_input(message)
     elif message.text == "Задача":
