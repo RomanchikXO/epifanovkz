@@ -1,6 +1,6 @@
-from handlers.default_handlers.adder_task import handle_calendar_input
-from handlers.default_handlers.reader_task import read_task_func
-from handlers.default_handlers.docs_tasks import time_interval
+from .adder_task import handle_calendar_input
+from .reader_task import read_task_func
+from .docs_tasks import time_interval
 
 import datetime
 
