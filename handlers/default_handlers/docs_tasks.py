@@ -118,7 +118,7 @@ def date_input(message: Message) -> None:
 def cal(call):
     result, key, step = DetailedTelegramCalendar(calendar_id=1, locale='ru', min_date=datetime.date.today()).process(call.data)
     if not result and key:
-        bot.edit_message_text(f"Select {LSTEP[step]}",
+        bot.edit_message_text(f"Выберите {LSTEP[step]}",
                               call.message.chat.id,
                               call.message.message_id,
                               reply_markup=key)
@@ -128,7 +128,7 @@ def cal(call):
         if tasks_in_result:
             for i_task in tasks_in_result:
                 button = done_for_task(i_task.name_patient)
-                bot.send_message(call.from_user.id, f'Пациент: {i_task.name_patient} \nЗадача: {i_task.task}',
+                bot.send_message(call.from_user.id, f'Врач: {i_task.doc}\nПациент: {i_task.name_patient} \nЗадача: {i_task.task}',
                                  reply_markup=button)
 
             pass
