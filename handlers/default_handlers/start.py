@@ -84,7 +84,7 @@ def handle_button_click(message: Message) -> None:
 def add_and_view(message: Message) -> None:
 
     if message.text == "Добавить":
-        existing_people = User.select().where(User.profession in ["Врач", "Массажист"])
+        existing_people = User.select().where(User.profession in ["Врач", "Массажист", "Администратор"])
         some_list = [person.telegram_id for person in existing_people]
         if message.from_user.id in some_list:
             bot.set_state(message.from_user.id, UserInfoState.change_date, message.chat.id)

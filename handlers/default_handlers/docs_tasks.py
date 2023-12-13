@@ -105,7 +105,7 @@ def date_input(message: Message) -> None:
     """
     Обработчик для ввода даты через календарь.
 
-    :param call_or_message: Объект сообщения.
+    :param message: Объект сообщения.
     :return: Ничего не возвращает.
     """
     calendar, step = DetailedTelegramCalendar(calendar_id=1, locale='ru', min_date=datetime.date.today()).build()
@@ -124,14 +124,18 @@ def cal(call):
                               reply_markup=key)
     elif result:
         tasks_in_result = Tasks.select().where(Tasks.date == result).execute()
+        with bot.retrieve_data(call.from_user.id) as data:
+            data['date_task'] = result
         bot.set_state(call.from_user.id, UserInfoState.get_data)
         if tasks_in_result:
             for i_task in tasks_in_result:
                 button = done_for_task(i_task.name_patient)
-                bot.send_message(call.from_user.id, f'Врач: {i_task.doc}\nПациент: {i_task.name_patient} \nЗадача: {i_task.task}',
+                bot.send_message(call.from_user.id, f'Врач: {i_task.doc}\n'
+                                                    f'Пациент: {i_task.name_patient} \n'
+                                                    f'Задача: {i_task.task} \n'
+                                                    f'Комментарий: {i_task.comment_if_done}',
                                  reply_markup=button)
 
-            pass
         else:
             bot.send_message(call.from_user.id, 'Задач на эту дату нет')
 

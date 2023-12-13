@@ -18,7 +18,6 @@ def read_task_func(message: Message) -> None:
     :param message: Объект сообщения от пользователя.
     :return: Ничего не возвращает.
     """
-    # Получение задач на сегодня
     tasks_today = Tasks.select().where(Tasks.date == datetime.date.today()).execute()
 
     if tasks_today:
@@ -30,6 +29,8 @@ def read_task_func(message: Message) -> None:
             if i_task.status is None:
                 bot.send_message(message.from_user.id, f'Пациент: {i_task.name_patient} \nЗадача: {i_task.task}',
                                  reply_markup=button)
+                with bot.retrieve_data(message.from_user.id) as data:
+                    data['date_task'] = datetime.date.today()
             else:
                 bot.send_message(message.from_user.id,  f'Пациент: {i_task.name_patient} - {i_task.task}\n'
                                                         f'Комментарий✅: {i_task.comment_if_done}')
@@ -50,7 +51,9 @@ def handle_callback(call: CallbackQuery) -> None:
 @bot.message_handler(state=UserInfoState.add_comment_2)
 def handle_callback(message: Message) -> None:
     with bot.retrieve_data(message.from_user.id) as data:
-        Tasks.update(comment_if_done=message.text, status=True).where(Tasks.name_patient == data["name_patient"], Tasks.date == datetime.date.today()).execute()
+        Tasks.update(comment_if_done=message.text, status=True).where(Tasks.name_patient == data["name_patient"],
+                                                                      Tasks.date == data['date_task']).execute()
+        data.clear()
 
     bot.send_message(message.from_user.id, "Комментарий успешно добавлен")
     bot.set_state(message.from_user.id, UserInfoState.add_info)

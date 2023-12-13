@@ -110,12 +110,14 @@ def confirm_data(call: CallbackQuery) -> None:
         if data['date_task'] == datetime.date.today():
             customers = User.select().where(User.profession == "Администратор")
             customers_id = [user.telegram_id for user in customers]
-            for id in customers_id:
-                bot.set_state(id, UserInfoState.add_info)
-                bot.send_message(id, 'Появилась новая задача на сегодня')
+            for person_id in customers_id:
+                bot.send_message(person_id, 'Появилась новая задача на сегодня')
         del data["name_pat"], data['task'], data['date_task']
 
-    bot.send_message(call.from_user.id, "Ваши данные записаны")
-    bot.set_state(call.from_user.id, UserInfoState.add_info)
-    change_keyboard = select_an_action("docs")
-    bot.send_message(call.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
+        bot.send_message(call.from_user.id, "Ваши данные записаны")
+        bot.set_state(call.from_user.id, UserInfoState.add_info)
+        if doctor.name in ["Анара", "Кристина"]:
+            change_keyboard = select_an_action("adm")
+        else:
+            change_keyboard = select_an_action("docs")
+        bot.send_message(call.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
