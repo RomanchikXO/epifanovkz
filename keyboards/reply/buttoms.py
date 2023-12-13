@@ -39,7 +39,7 @@ def select_an_action(type_person: str) -> ReplyKeyboardMarkup:
     button3 = KeyboardButton("Мои задачи")
 
     if type_person == "adm":
-        keyboard.add(button2)
+        keyboard.add(button1, button2)
     elif type_person == "docs":
         keyboard.add(button1, button2, button3)
     return keyboard
