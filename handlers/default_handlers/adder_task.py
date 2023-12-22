@@ -112,7 +112,7 @@ def confirm_data(call: CallbackQuery) -> None:
             customers_id = [user.telegram_id for user in customers]
             for person_id in customers_id:
                 bot.send_message(person_id, 'Появилась новая задача на сегодня')
-        del data["name_pat"], data['task'], data['date_task']
+        data.clear()
 
         bot.send_message(call.from_user.id, "Ваши данные записаны")
         bot.set_state(call.from_user.id, UserInfoState.add_info)
