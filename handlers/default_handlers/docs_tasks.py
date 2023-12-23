@@ -135,6 +135,7 @@ def cal(call):
                                                     f'Задача: {i_task.task} \n'
                                                     f'Комментарий: {i_task.comment_if_done}',
                                  reply_markup=button)
+            data.clear()
 
         else:
             bot.send_message(call.from_user.id, 'Задач на эту дату нет')
