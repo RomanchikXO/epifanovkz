@@ -30,7 +30,7 @@ def bot_start(message: Message) -> None:
         if existing_people:
             bot.send_message(message.from_user.id, f"Здраствуйте, {existing_people.name}")
             bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
-            if message.text in ["Анара", "Кристина"]:
+            if existing_people.profession == "Администратор":
                 change_keyboard = select_an_action("adm")
             else:
                 change_keyboard = select_an_action("docs")
