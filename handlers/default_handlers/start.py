@@ -25,9 +25,20 @@ from database.DataBase import User
 @bot.message_handler(state="*", commands=["start"])
 def bot_start(message: Message) -> None:
     print('Декоратор @bot.message_handler(commands=["start"]) сработал')
-    change_keyboard = create_keyboard_person()
-    bot.set_state(message.from_user.id, UserInfoState.change_staff, message.chat.id)
-    bot.send_message(message.from_user.id, "Выберите свою профессию:", reply_markup=change_keyboard)
+    try:
+        existing_people = User.get(User.telegram_id == message.from_user.id)
+        if existing_people:
+            bot.send_message(message.from_user.id, f"Здраствуйте, {existing_people.name}")
+            bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
+            if message.text in ["Анара", "Кристина"]:
+                change_keyboard = select_an_action("adm")
+            else:
+                change_keyboard = select_an_action("docs")
+            bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
+    except peewee.DoesNotExist:
+        change_keyboard = create_keyboard_person()
+        bot.set_state(message.from_user.id, UserInfoState.change_staff, message.chat.id)
+        bot.send_message(message.from_user.id, "Выберите свою профессию:", reply_markup=change_keyboard)
 
 
 @bot.message_handler(state=UserInfoState.change_staff,
@@ -55,28 +66,23 @@ def handle_button_click(message: Message) -> None:
 def handle_button_click(message: Message) -> None:
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         try:
-            existing_people = User.get(User.telegram_id == data['tele_id'])
+            existing_people = User.get(User.name == message.text)
         except peewee.DoesNotExist:
-            # Создаем нового пользователя, если запись не существует
+            # Создаем нового пользователя, если запись в БД не существует
             User.create(name=message.text, telegram_id=data['tele_id'], profession=data['profession'])
-        finally:
-            # Снова получаем существующих пользователей (или только что созданного)
-            existing_people = User.select().where(User.telegram_id == data['tele_id'])
-
-            for person in existing_people:
-                name = person.name
-
-            if message.text == name:
-                bot.send_message(message.from_user.id, f'Вы действительно {message.text}')
-                bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
-                if message.text in ["Анара", "Кристина"]:
-                    change_keyboard = select_an_action("adm")
-                else:
-                    change_keyboard = select_an_action("docs")
-                bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
+            existing_people = User.get(User.telegram_id == data['tele_id'])
+            bot.set_state(message.from_user.id, UserInfoState.add_info, message.chat.id)
+            if existing_people.profession == "Администратор":
+                change_keyboard = select_an_action("adm")
             else:
-                bot.send_message(message.from_user.id, f'Вы {name}')
-                bot_start(message)
+                change_keyboard = select_an_action("docs")
+            bot.send_message(message.from_user.id, "Выбери задачу", reply_markup=change_keyboard)
+        else:
+            bot.send_message(message.from_user.id, "Такой пользователь уже существует")
+            change_keyboard = create_keyboard_person()
+            bot.set_state(message.from_user.id, UserInfoState.change_staff, message.chat.id)
+            bot.send_message(message.from_user.id, "Выберите свою профессию:", reply_markup=change_keyboard)
+
 
 
 @bot.message_handler(state=[UserInfoState.add_info, UserInfoState.add_comment],
