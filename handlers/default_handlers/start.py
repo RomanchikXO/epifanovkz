@@ -84,7 +84,6 @@ def handle_button_click(message: Message) -> None:
             bot.send_message(message.from_user.id, "Выберите свою профессию:", reply_markup=change_keyboard)
 
 
-
 @bot.message_handler(state=[UserInfoState.add_info, UserInfoState.add_comment],
                      func=lambda message: message.text in ["Добавить", "Прочитать", "Мои задачи"])
 def add_and_view(message: Message) -> None:
@@ -94,6 +93,8 @@ def add_and_view(message: Message) -> None:
         some_list = [person.telegram_id for person in existing_people]
         if message.from_user.id in some_list:
             bot.set_state(message.from_user.id, UserInfoState.change_date, message.chat.id)
+            with bot.retrieve_data(message.from_user.id) as data:
+                data.clear()
             handle_calendar_input(message)
         else:
             bot.send_message(message.from_user.id, "Добавление задач для вас не доступно")
