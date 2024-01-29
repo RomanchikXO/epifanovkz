@@ -54,6 +54,7 @@ def handle_callback(message: Message) -> None:
         Tasks.update(comment_if_done=message.text, status=True).where(Tasks.name_patient == data["name_patient"],
                                                                       Tasks.date == data['date_task']).execute()
         data.clear()
+        data['date_task'] = datetime.date.today()
 
     bot.send_message(message.from_user.id, "Комментарий успешно добавлен")
     bot.set_state(message.from_user.id, UserInfoState.add_info)
