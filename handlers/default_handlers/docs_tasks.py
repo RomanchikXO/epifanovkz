@@ -124,8 +124,7 @@ def cal(call):
                               reply_markup=key)
     elif result:
         tasks_in_result = Tasks.select().where(Tasks.date == result).execute()
-        with bot.retrieve_data(call.from_user.id) as data:
-            data['date_task'] = result
+
         bot.set_state(call.from_user.id, UserInfoState.get_data)
         if tasks_in_result:
             for i_task in tasks_in_result:
@@ -135,7 +134,9 @@ def cal(call):
                                                     f'Задача: {i_task.task} \n'
                                                     f'Комментарий: {i_task.comment_if_done}',
                                  reply_markup=button)
-            data.clear()
+            with bot.retrieve_data(call.from_user.id) as data:
+                data.clear()
+                data['date_task'] = result
 
         else:
             bot.send_message(call.from_user.id, 'Задач на эту дату нет')
