@@ -15,6 +15,6 @@ if __name__ == "__main__":
     #используем многопоточность
     with concurrent.futures.ThreadPoolExecutor() as executor:
         executor.submit(get_tasks_everyday)
-        executor.submit(bot.infinity_polling)
+        executor.submit(bot.infinity_polling(skip_pending=True))
 
 
