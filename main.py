@@ -5,7 +5,7 @@ from telebot.custom_filters import StateFilter
 from database import DataBase
 
 import concurrent.futures
-from getter_tasks_everyday import get_tasks_everyday
+from utils.getter_tasks_everyday import get_tasks_everyday
 
 
 if __name__ == "__main__":
