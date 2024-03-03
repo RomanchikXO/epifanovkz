@@ -7,6 +7,7 @@ else:
     load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+admin_id = os.getenv("ID_adm")
 
 DEFAULT_COMMANDS = [
     ("/start", "Начать работу с ботом"),

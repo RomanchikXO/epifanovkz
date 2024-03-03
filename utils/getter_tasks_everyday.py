@@ -7,8 +7,10 @@ from states.person_info import UserInfoState
 from database.DataBase import Tasks, db
 import datetime
 
+from config_data import config
 
-admin_kris = 1113592485
+
+admin_kris = config.admin_id
 
 
 def get_tasks_everyday() -> None:
