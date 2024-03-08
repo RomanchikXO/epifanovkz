@@ -6,7 +6,6 @@ from keyboards.inline.completed_or_not import *
 from states.person_info import UserInfoState
 from database.DataBase import Tasks, db
 import datetime
-
 from config_data import config
 
 
@@ -45,6 +44,7 @@ def get_tasks_everyday() -> None:
             # Вычисляем количество секунд до следующего дня
             tomorrow = now + datetime.timedelta(days=1)
             seconds_until_tomorrow = (tomorrow - datetime.datetime.now()).total_seconds()
+            db.close()
             # Засыпаем на это количество секунд
             time.sleep(seconds_until_tomorrow)
 
