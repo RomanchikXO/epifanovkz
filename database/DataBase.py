@@ -1,4 +1,4 @@
-from peewee import *
+from peewee import SqliteDatabase, Model, CharField, IntegerField, BooleanField
 
 db = SqliteDatabase("epifanovDB")
 
